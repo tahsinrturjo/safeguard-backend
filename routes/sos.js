@@ -6,8 +6,10 @@ const admin = require('firebase-admin');
 // Set up Firebase (only once)
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(require('../firebase-key.json'))
-  });
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  )
+});
 }
 
 // POST /sos/trigger
