@@ -1,16 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const admin = require('firebase-admin');
-
-// Set up Firebase (only once)
-if (!admin.apps.length) {
-  admin.initializeApp({
-  credential: admin.credential.cert(
-    JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  )
-});
-}
 
 // POST /sos/trigger
 router.post('/trigger', async (req, res) => {
@@ -42,41 +32,32 @@ router.post('/trigger', async (req, res) => {
     // Collect push tokens
     const tokens = nearbyUsers
       .map(user => user.fcmToken)
-      .filter(token => token && token !== 'test-token-123');
+      .filter(token => token && token !== 'test-token-123' && token !== 'no-token');
 
-    // Send push notifications if real tokens exist
-    console.log('Tokens to notify:', tokens);
-if (tokens.length > 0) {
-  const response = await admin.messaging().sendEachForMulticast({
-    tokens: tokens,
-    notification: {
-      title: '🚨 SAFETY ALERT NEARBY',
-      body: 'Someone near you needs help! Tap to see location.'
-    },
-    data: {
-      latitude: String(latitude),
-      longitude: String(longitude),
-      type: 'SOS'
-    },
-    android: {
-      priority: 'high'
-    },
-    apns: {
-      payload: {
-        aps: {
-          'content-available': 1,
-          sound: 'default'
-        }
-      }
+    // Send via Expo push service
+    if (tokens.length > 0) {
+      const messages = tokens.map(token => ({
+        to: token,
+        title: '🚨 SAFETY ALERT NEARBY',
+        body: 'Someone near you needs help! Tap to see location.',
+        data: {
+          latitude: String(latitude),
+          longitude: String(longitude),
+          type: 'SOS'
+        },
+        sound: 'default',
+        priority: 'high',
+      }));
+
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messages),
+      });
+
+      const result = await response.json();
+      console.log('Expo push response:', JSON.stringify(result));
     }
-  });
-  console.log('FCM response:', JSON.stringify(response));
-  response.responses.forEach((r, i) => {
-    if (!r.success) {
-      console.log(`Token ${i} failed:`, r.error);
-    }
-  });
-}
 
     res.json({
       success: true,
