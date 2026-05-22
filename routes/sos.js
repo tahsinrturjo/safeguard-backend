@@ -45,31 +45,38 @@ router.post('/trigger', async (req, res) => {
       .filter(token => token && token !== 'test-token-123');
 
     // Send push notifications if real tokens exist
-    if (tokens.length > 0) {
-      await admin.messaging().sendEachForMulticast({
-        tokens: tokens,
-        notification: {
-          title: '🚨 SAFETY ALERT NEARBY',
-          body: 'Someone near you needs help! Tap to see location.'
-        },
-        data: {
-          latitude: String(latitude),
-          longitude: String(longitude),
-          type: 'SOS'
-        },
-        android: {
-          priority: 'high'
-        },
-        apns: {
-          payload: {
-            aps: {
-              'content-available': 1,
-              sound: 'default'
-            }
-          }
+    console.log('Tokens to notify:', tokens);
+if (tokens.length > 0) {
+  const response = await admin.messaging().sendEachForMulticast({
+    tokens: tokens,
+    notification: {
+      title: '🚨 SAFETY ALERT NEARBY',
+      body: 'Someone near you needs help! Tap to see location.'
+    },
+    data: {
+      latitude: String(latitude),
+      longitude: String(longitude),
+      type: 'SOS'
+    },
+    android: {
+      priority: 'high'
+    },
+    apns: {
+      payload: {
+        aps: {
+          'content-available': 1,
+          sound: 'default'
         }
-      });
+      }
     }
+  });
+  console.log('FCM response:', JSON.stringify(response));
+  response.responses.forEach((r, i) => {
+    if (!r.success) {
+      console.log(`Token ${i} failed:`, r.error);
+    }
+  });
+}
 
     res.json({
       success: true,
