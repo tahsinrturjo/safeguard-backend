@@ -35,7 +35,7 @@ router.post('/trigger', async (req, res) => {
       const messages = tokens.map(token => ({
         to: token,
         title: '🚨 SAFETY ALERT NEARBY',
-        body: `Someone near you needs help! https://maps.google.com/?q=${latitude},${longitude}`,
+        body: `Someone near you needs help! Open Maps: https://maps.google.com/?q=${latitude},${longitude}`,
         data: {
           latitude: String(latitude),
           longitude: String(longitude),
