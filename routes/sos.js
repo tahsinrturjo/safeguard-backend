@@ -35,7 +35,7 @@ router.post('/trigger', async (req, res) => {
       const messages = tokens.map(token => ({
         to: token,
         title: '🚨 SAFETY ALERT NEARBY',
-        body: `Someone near you needs help! Track live: ${BASE_URL}/track/${userId}`,
+        body: `Someone near you needs help! Track live: https://safeguard-backend-production-b920.up.railway.app/track/${userId}`,
         data: {
   trackUrl: `https://safeguard-backend-production-b920.up.railway.app/track/${userId}`,
   type: 'SOS'
