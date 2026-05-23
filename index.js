@@ -19,6 +19,9 @@ app.use('/sos', sosRoutes);
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
 
+const trackRoutes = require('./routes/track');
+app.use('/track', trackRoutes);
+
 // Basic test
 app.get('/', (req, res) => {
   res.send('Safeguard backend is running!');
