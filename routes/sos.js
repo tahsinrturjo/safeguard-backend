@@ -7,7 +7,6 @@ router.post('/trigger', async (req, res) => {
   const { userId, latitude, longitude } = req.body;
 
   try {
-    // Update this user's location
     await User.findByIdAndUpdate(userId, {
       location: {
         type: 'Point',
@@ -15,7 +14,6 @@ router.post('/trigger', async (req, res) => {
       }
     });
 
-    // Find nearby users within 2km
     const nearbyUsers = await User.find({
       _id: { $ne: userId },
       location: {
@@ -29,20 +27,19 @@ router.post('/trigger', async (req, res) => {
       }
     });
 
-    // Collect push tokens
     const tokens = nearbyUsers
       .map(user => user.fcmToken)
       .filter(token => token && token !== 'test-token-123' && token !== 'no-token');
 
-    // Send via Expo push service
     if (tokens.length > 0) {
       const messages = tokens.map(token => ({
         to: token,
         title: '🚨 SAFETY ALERT NEARBY',
-        body: 'Someone near you needs help! Tap to see location.',
+        body: `Someone near you needs help! https://maps.google.com/?q=${latitude},${longitude}`,
         data: {
           latitude: String(latitude),
           longitude: String(longitude),
+          mapsUrl: `https://maps.google.com/?q=${latitude},${longitude}`,
           type: 'SOS'
         },
         sound: 'default',
